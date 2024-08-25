@@ -3,6 +3,7 @@ import { method, PrivateKey } from "o1js";
 import { Balances } from "../../../src/runtime/modules/balances";
 import { log } from "@proto-kit/common";
 import { BalancesKey, TokenId, UInt64 } from "@proto-kit/library";
+import { Game2048 } from "../../../src/runtime/modules/game2048";
 
 log.setLevel("ERROR");
 
@@ -10,6 +11,7 @@ describe("balances", () => {
   it("should demonstrate how balances work", async () => {
     const appChain = TestingAppChain.fromRuntime({
       Balances,
+      Game2048,
     });
 
     appChain.configurePartial({
@@ -17,6 +19,7 @@ describe("balances", () => {
         Balances: {
           totalSupply: UInt64.from(10000),
         },
+        Game2048: {},
       },
     });
 
