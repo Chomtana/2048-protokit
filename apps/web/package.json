@@ -34,12 +34,15 @@
     "truncate-middle": "^1.0.6",
     "zod": "^3.22.4",
     "zustand": "^4.4.6",
-    "o1js": "1.6.0"
+    "o1js": "1.6.0",
+    "styled-components": "^5.3.6",
+    "styled-normalize": "^8.0.7"
   },
   "devDependencies": {
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "@types/styled-components": "^5.1.26",
     "autoprefixer": "^10.0.1",
     "eslint": "^8",
     "eslint-config-custom": "workspace:*",

@@ -17,6 +17,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="h-full">
+      <head>
+        <title>Mina 2048 with Protokit + o1js</title>
+        <meta name="viewport" content="initial-scale=1.0, width=device-width" />
+        <link rel="icon" href="/2048_logo.svg" />
+      </head>
+
       <body
         className={cn(
           "h-full bg-background font-sans antialiased",
