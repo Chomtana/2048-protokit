@@ -20,6 +20,8 @@ import { useResetGame } from '@/lib/stores/game';
 import Button from './Button';
 import logo2048 from "@/public/2048_logo.svg";
 import Image from "next/image";
+import axios from "axios"
+import { useWalletStore } from '@/lib/stores/wallet';
 
 export type Configuration = {
   theme: ThemeName;
@@ -34,6 +36,9 @@ const Game2048: FC = () => {
   const resetGame = useResetGame()
 
   const [gameInitialized, setGameInitialized] = useState(false)
+  const [gameInitializing, setGameInitializing] = useState(false)
+
+  const wallet = useWalletStore()
 
   const [gameState, setGameStatus] = useGameState({
     status: 'running',
@@ -61,12 +66,23 @@ const Game2048: FC = () => {
     cols,
     gameState,
     addScore,
+    initialized: gameInitialized,
   });
 
   const onResetGame = useCallback(async () => {
-    await resetGame()
-    setGameStatus('restart');
-    setGameInitialized(true)
+    try {
+      setGameInitializing(true)
+
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_SESSION_SERVER_URL}/session-key/${wallet.wallet}`)
+      await resetGame(response.data.address)
+
+      setGameStatus('restart');
+      setGameInitialized(true)
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setGameInitializing(false)
+    }
   }, [setGameStatus]);
 
   const onCloseNotification = useCallback(
@@ -135,9 +151,9 @@ const Game2048: FC = () => {
             marginBlockEnd="s6"
           >
             <Box>
-              <Button onClick={onResetGame}>
+              <Button onClick={onResetGame} disable={gameInitializing}>
                 <Text fontSize={16} textTransform="capitalize">
-                  New Game
+                  {gameInitializing ? 'Processing...' : 'New Game'}
                 </Text>
               </Button>
             </Box>
@@ -195,9 +211,9 @@ const Game2048: FC = () => {
                     <Image className="h-24 w-24 mb-5" src={logo2048} alt={"2048 logo"} />
                   </div>
 
-                  <Button onClick={onResetGame}>
+                  <Button onClick={onResetGame} disable={gameInitializing}>
                     <Text fontSize={16} textTransform="capitalize">
-                      New Game
+                      {gameInitializing ? 'Processing...' : 'New Game'}
                     </Text>
                   </Button>
                 </div>

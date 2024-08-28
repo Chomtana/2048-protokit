@@ -11,6 +11,8 @@ import {
 import { Vector } from '../utils/types';
 import type { GameState } from './useGameState';
 import useLazyRef from './useLazyRef';
+import { useWalletStore } from '@/lib/stores/wallet';
+import axios from 'axios';
 
 export interface Location {
   r: number;
@@ -33,9 +35,20 @@ export type GameBoardParams = {
   cols: number;
   gameState: GameState;
   addScore: (score: number) => void;
+  initialized: boolean;
 };
 
-const createNewTile = (r: number, c: number): Tile => {
+const createNewTile = (r: number, c: number, wallet?: string): Tile => {
+  // Queue create new tile on the session server
+  if (wallet) {
+    axios.get(`${process.env.NEXT_PUBLIC_SESSION_SERVER_URL}/add-tile/${wallet}`, {
+      params: {
+        r,
+        c,
+      }
+    })
+  }
+
   const index = nextTileIndex();
   const id = getId(index);
   return {
@@ -58,6 +71,7 @@ const getEmptyCellsLocation = (grid: Cell[][]) =>
 const createNewTilesInEmptyCells = (
   emptyCells: Location[],
   tilesNumber: number,
+  wallet?: string,
 ) => {
   const actualTilesNumber =
     emptyCells.length < tilesNumber ? emptyCells.length : tilesNumber;
@@ -66,7 +80,7 @@ const createNewTilesInEmptyCells = (
 
   return shuffle(emptyCells)
     .slice(0, actualTilesNumber)
-    .map(({ r, c }) => createNewTile(r, c));
+    .map(({ r, c }) => createNewTile(r, c, wallet));
 };
 
 const createTraversalMap = (rows: number, cols: number, dir: Vector) => {
@@ -82,7 +96,7 @@ const createTraversalMap = (rows: number, cols: number, dir: Vector) => {
 const sortTiles = (tiles: Tile[]) =>
   [...tiles].sort((t1, t2) => t1.index - t2.index);
 
-const mergeAndCreateNewTiles = (grid: Cell[][]) => {
+const mergeAndCreateNewTiles = (grid: Cell[][], wallet: string) => {
   const tiles: Tile[] = [];
   let score = 0;
   const rows = grid.length;
@@ -119,6 +133,7 @@ const mergeAndCreateNewTiles = (grid: Cell[][]) => {
   const newTiles = createNewTilesInEmptyCells(
     emptyCells,
     Math.ceil((rows * cols) / 16),
+    wallet,
   );
   newTiles.forEach((tile) => {
     newGrid[tile.r][tile.c] = tile;
@@ -223,7 +238,9 @@ const resetGameBoard = (rows: number, cols: number) => {
   };
 };
 
-const useGameBoard = ({ rows, cols, gameState, addScore }: GameBoardParams) => {
+const useGameBoard = ({ rows, cols, gameState, addScore, initialized }: GameBoardParams) => {
+  const wallet = useWalletStore()
+
   const gridMapRef = useLazyRef(() => {
     const grid = create2DArray<Cell>(rows, cols);
     const tiles = createInitialTiles(grid);
@@ -240,6 +257,30 @@ const useGameBoard = ({ rows, cols, gameState, addScore }: GameBoardParams) => {
 
   const onMove = useCallback(
     (dir: Vector) => {
+      if (wallet.wallet && initialized) {
+        console.log('Move', dir)
+
+        let parsedDir = '';
+
+        if (dir.r == 1) {
+          parsedDir = 'd'
+        } else if (dir.r == -1) {
+          parsedDir = 'u'
+        } else if (dir.c == 1) {
+          parsedDir = 'r'
+        } else if (dir.c == -1) {
+          parsedDir = 'l'
+        }
+
+        if (parsedDir) {
+          axios.get(`${process.env.NEXT_PUBLIC_SESSION_SERVER_URL}/move/${wallet.wallet}`, {
+            params: {
+              dir: parsedDir,
+            }
+          })
+        }
+      }
+
       if (pendingStackRef.current.length === 0 && !pauseRef.current) {
         const {
           tiles: newTiles,
@@ -255,17 +296,19 @@ const useGameBoard = ({ rows, cols, gameState, addScore }: GameBoardParams) => {
         }
       }
     },
-    [gridMapRef],
+    [gridMapRef, wallet, initialized],
   );
 
   const onMovePending = useCallback(() => {
+    if (!wallet.wallet) return
+
     pendingStackRef.current.pop();
     if (pendingStackRef.current.length === 0) {
       const {
         tiles: newTiles,
         score,
         grid,
-      } = mergeAndCreateNewTiles(gridMapRef.current.grid);
+      } = mergeAndCreateNewTiles(gridMapRef.current.grid, wallet.wallet);
       gridMapRef.current = { grid, tiles: newTiles };
       addScore(score);
       pendingStackRef.current = newTiles
@@ -273,7 +316,7 @@ const useGameBoard = ({ rows, cols, gameState, addScore }: GameBoardParams) => {
         .map((tile) => tile.index);
       setTiles(sortTiles(newTiles));
     }
-  }, [addScore, gridMapRef]);
+  }, [addScore, gridMapRef, wallet]);
 
   const onMergePending = useCallback(() => {
     pendingStackRef.current.pop();

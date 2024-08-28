@@ -2,6 +2,7 @@ import express, { Request, Response } from 'express';
 import { buildAppChain } from "./environments/client.config.js";
 import { Field, PrivateKey } from 'o1js';
 import { InMemorySigner } from "@proto-kit/sdk";
+import cors from 'cors'
 
 type Action = { type: 'move', player: string, dir: string } | { type: 'addTile', player: string, r: number, c: number }
 
@@ -12,6 +13,8 @@ const SESSION_KEY_MAP: {[player: string]: PrivateKey} = {}
 const SESSION_KEY_CLIENT: {[player: string]: ReturnType<typeof buildAppChain>} = {}
 
 const ACTIONS: Action[] = []
+
+app.use(cors())
 
 app.get('/session-key/:address', async (req: Request, res: Response) => {
   try {
@@ -156,7 +159,7 @@ async function processAction() {
   }
 }
 
-setInterval(processAction, 1100)
+setInterval(processAction, 3000)
 
 app.get('/', (req: Request, res: Response) => {
   res.send('Hello, world!');

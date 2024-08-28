@@ -19,26 +19,28 @@
     "@radix-ui/react-tooltip": "^1.0.7",
     "@tailwindcss/typography": "^0.5.10",
     "@uidotdev/usehooks": "^2.4.1",
+    "axios": "^1.7.5",
     "chain": "workspace:*",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
     "immer": "^10.0.3",
     "lucide-react": "^0.292.0",
     "next": "14.0.1",
+    "o1js": "1.6.0",
     "react": "^18",
     "react-dom": "^18",
     "react-hook-form": "^7.48.2",
     "reflect-metadata": "^0.1.13",
+    "styled-components": "^5.3.6",
+    "styled-normalize": "^8.0.7",
     "tailwind-merge": "^2.0.0",
     "tailwindcss-animate": "^1.0.7",
     "truncate-middle": "^1.0.6",
     "zod": "^3.22.4",
-    "zustand": "^4.4.6",
-    "o1js": "1.6.0",
-    "styled-components": "^5.3.6",
-    "styled-normalize": "^8.0.7"
+    "zustand": "^4.4.6"
   },
   "devDependencies": {
+    "@types/axios": "^0.14.0",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
@@ -55,11 +57,11 @@
   },
   "peerDependencies": {
     "@proto-kit/common": "*",
-    "@proto-kit/protocol": "*",
+    "@proto-kit/library": "*",
     "@proto-kit/module": "*",
+    "@proto-kit/protocol": "*",
     "@proto-kit/sdk": "*",
     "@proto-kit/sequencer": "*",
-    "@proto-kit/library": "*",
     "tsyringe": "^4.7.0"
   }
 }
